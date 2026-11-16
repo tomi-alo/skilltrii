@@ -32,6 +32,17 @@ Prompt 2: in-demand skills and meaningful networks in a changing job market.
 
 Skilltrii is a full working product, not a mockup. It's live at **[skilltrii.work](https://www.skilltrii.work)**, new jobs come in every morning, and **22 people have already signed up** and saved their skill maps.
 
+## My role: the AI pipeline
+
+I'm **Oluwatomi Alo** ([LinkedIn](https://www.linkedin.com/in/oluwatomi-alo/) · [@tomi-alo](https://github.com/tomi-alo)). I owned the AI side of Skilltrii: turning raw job posts into the clean skill data the whole map runs on.
+
+- **Batched skill extraction.** `extractSkillsBatch` ([`lib/extract.ts`](lib/extract.ts)) sends up to 20 posts to Gemini in one call, with a strict JSON schema. Each post comes back with its skills, which ones are must-haves, and the seniority. The free tier allows only 20 requests a day per model, so batching is what made it work at all.
+- **Never trust the model's output.** The code keeps only answers for posts we actually sent, in skill categories we know. `canonicalSkill` ([`lib/skills.ts`](lib/skills.ts), unit tested) turns aliases like "ReactJS" and "React.js" into one `react`.
+- **`/api/extract`.** Reads unread posts from Postgres, runs the batch, and saves the skills over the starter keyword guesses. n8n calls it every morning after ingest.
+- **Built to survive a flaky API.** When a model is out of quota (429), overloaded (503) or too slow (504, seen live on Vercel), extraction falls back to the next of three pinned models. Each model gets 25 s and all of them 55 s together, so a run fits Vercel's 60 s limit, and calls are spaced 13 s apart per model to respect the 5-per-minute rate limit.
+- **Learning extras.** Live free-learning links from Keenable, plus Gemini project ideas made in one cached call ([`lib/extras.ts`](lib/extras.ts)).
+- **Team guide.** I wrote the guide that walked every teammate through how the system works, with judge Q&A and a quiz, so all five of us could explain it.
+
 ## The problem
 
 We're international students looking for tech work in Canada, and the market is tight.
@@ -156,7 +167,7 @@ Set up the database by running these files from `db/` in Neon, in order: `schema
 | | Name | Built |
 |---|---|---|
 | <img src="https://github.com/SaagiiSG.png" width="40" alt=""> | **Saran-Ochir Sergelen** · [@SaagiiSG](https://github.com/SaagiiSG) | UI/UX and front end: landing, onboarding, dashboard, 3D map, Learning guide, Impact projects |
-| <img src="https://github.com/tomi-alo.png" width="40" alt=""> | **Oluwatomi Alo** · [@tomi-alo](https://github.com/tomi-alo) | AI: Gemini skill extraction, prompts, skill cleanup |
+| <img src="https://github.com/tomi-alo.png" width="40" alt=""> | **Oluwatomi Alo** · [@tomi-alo](https://github.com/tomi-alo) · [LinkedIn](https://www.linkedin.com/in/oluwatomi-alo/) | AI: batched Gemini skill extraction, output validation and skill aliases, `/api/extract`, model fallback, learning extras, team guide ([more above](#my-role-the-ai-pipeline)) |
 | <img src="https://github.com/ChristopherObinwa.png" width="40" alt=""> | **Christopher Obinwa** · [@ChristopherObinwa](https://github.com/ChristopherObinwa) | Job feeds, the daily ingest, job-board discovery, the n8n workflow |
 | <img src="https://github.com/45Clover.png" width="40" alt=""> | **Lebohang Tangu** · [@45Clover](https://github.com/45Clover) | Job data and the n8n setup, team repo |
 | <img src="https://github.com/fabf28.png" width="40" alt=""> | **Favour Iheanyichukwu** · [@fabf28](https://github.com/fabf28) | Platform: database schema, Neon and Auth0 setup |
